@@ -12,19 +12,35 @@ var postfixConnector = "-";
 var postfix = process.argv[2];
 
 
-//printint informative head;
-process.stdout.write("++++++++++++++++++++++++++++++++++++++++++++++++++");
-for(var i=0; i<=process.argv[2].toString().length; i++){
-	process.stdout.write("+");
-}
-process.stdout.write("\n");
-console.log("fonts xml bulk modify");
-process.stdout.write("++++++++++++++++++++++++++++++++++++++++++++++++++");
-for(var i=0; i<=process.argv[2].toString().length; i++){
-	process.stdout.write("+");
-}
-process.stdout.write("\n");
-//eof of informative head;
+			//printint informative head;
+			process.stdout.write("++++++++++++++++++++++++++++++++++++++++++++++++++");
+			//for(var i=0; i<=process.argv[2].toString().length; i++){
+				//process.stdout.write("+");
+			//}
+			process.stdout.write("\n");
+			console.log("fonts xml bulk modify");
+			process.stdout.write("++++++++++++++++++++++++++++++++++++++++++++++++++");
+			//for(var i=0; i<=process.argv[2].toString().length; i++){
+				//process.stdout.write("+");
+			//}
+			process.stdout.write("\n");
+			//eof of informative head;
+
+			
+//server initialization;
+var app = express();
+
+app.get('/', function (req, res) {
+  res.send('Hello World!')
+})
+
+app.listen(5001, function () {
+  console.log('Example app listening on port 5001!')
+})
+
+opn('http://localhost:5001', {app: 'chrome'});
+//eof server initialization;
+
 
 const folder = '.';
 var fileNames = [];
