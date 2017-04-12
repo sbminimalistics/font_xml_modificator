@@ -5,6 +5,8 @@ var colors = require('colors');
 var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
+var express = require('express');
+var opn = require('opn')
 
 var postfixConnector = "-";
 var postfix = process.argv[2];
@@ -16,7 +18,7 @@ for(var i=0; i<=process.argv[2].toString().length; i++){
 	process.stdout.write("+");
 }
 process.stdout.write("\n");
-console.log("clearing duplicated files with names that include: " + colors.bgWhite.black(String(process.argv[2])));
+console.log("fonts xml bulk modify");
 process.stdout.write("++++++++++++++++++++++++++++++++++++++++++++++++++");
 for(var i=0; i<=process.argv[2].toString().length; i++){
 	process.stdout.write("+");
@@ -40,7 +42,7 @@ fs.readdir(folder, (err, files) => {
 function interpreterList(){
 	//console.log(fileNames);
 	currentItemWaittingForStat = -1;
-	getNextItemInfo();
+	//getNextItemInfo();
 }
 
 function getNextItemInfo(){

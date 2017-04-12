@@ -1,5 +1,5 @@
 {
-  "name": "trimpostfix",
+  "name": "fontxml",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -8,20 +8,25 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sbminimalistics/global_node_module.git"
+    "url": ""
   },
   "author": "sbm",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/sbminimalistics/global_node_module/issues"
+    "url": ""
   },
-  "homepage": "https://github.com/sbminimalistics/global_node_module#readme",
+  "homepage": "",
   "preferGlobal": true,
   "bin": {
-    "trimpostfix": "index.js"
+    "fontxml": "index.js"
   },
   "devDependencies": {
     "colors": "^1.1.2",
-    "underscore": "^1.8.3"
+    "express": "^4.15.2",
+    "fs": "0.0.1-security",
+    "opn": "^4.0.2",
+    "path": "^0.12.7",
+    "underscore": "^1.8.3",
+    "xml2js": "^0.4.17"
   }
 }
