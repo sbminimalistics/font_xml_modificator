@@ -101,7 +101,21 @@ function readUploadedFile(res, target){
 	var doc = new domparser().parseFromString(syncData, 'text/xml');
 	//console.log(doc);
 	console.log("+++++++++++++++++++++++++++++++++++++++");
-	console.log(xpath.select('//chars', doc)[0]);
+	var chars = xpath.select('//chars', doc)[0];
+	console.log("chars found: "+chars.childNodes.length);
+	for(var i=0; i < chars.childNodes.length; i++){
+		console.log(chars.childNodes[0].nodeType);
+	}
+	var chars2 = xpath.select('//char', doc);
+	//for(var j=0; j < chars2.length; j++){
+		//console.log(chars2[j].attributes);
+	//}
+	
+	parser.parseString(syncData, function (err, result) {
+		//console.dir(result);
+		console.log(result.font.chars[0].char[0]);
+	});
+	
 	//console.log(syncData);
 	
 	/*fs.readFile(target, function(err, data) {
