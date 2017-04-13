@@ -19,6 +19,7 @@ var parser = new xml2js.Parser();
 
 var modif = process.argv[2];
 
+Error.stackTraceLimit = 0;
 
 			//printint informative head;
 			process.stdout.write("+++++++++++++++++++++++++++++");
@@ -51,7 +52,6 @@ app.post('/', function(req, res){
   form.on('end', function() {
 	//res.write();
 	readUploadedFile(res, fullFilePath);
-	res.end();
   });
   form.parse(req);
 });
@@ -95,25 +95,24 @@ function getNextItemInfo(){
 
 function readUploadedFile(res, target){
 	console.log(">readUploadedFile fullPath:"+target);
-	//var content = fs.readFileSync(target, 'utf8');
-	//console.log(content);   // Put all of the code here (not the best solution)
 	var syncData = fs.readFileSync(target, 'utf8');
 	var doc = new domparser().parseFromString(syncData, 'text/xml');
 	//console.log(doc);
 	console.log("+++++++++++++++++++++++++++++++++++++++");
 	var chars = xpath.select('//chars', doc)[0];
 	console.log("chars found: "+chars.childNodes.length);
-	for(var i=0; i < chars.childNodes.length; i++){
-		console.log(chars.childNodes[0].nodeType);
-	}
 	var chars2 = xpath.select('//char', doc);
-	//for(var j=0; j < chars2.length; j++){
-		//console.log(chars2[j].attributes);
-	//}
 	
 	parser.parseString(syncData, function (err, result) {
+		if(err){throw err;}
+		if(result == null || result.font == null || result.font.chars[0] == null){
+			throw new Error(colors.bgRed.white(' ERR: selected file does not hold font chars info '));
+		}
 		//console.dir(result);
-		console.log(result.font.chars[0].char[0]);
+		//.$ gives object of attributes;
+		//console.log(result.font.chars[0].char[0].$.xadvance);
+		res.write("<script>var chars = "+JSON.stringify(result)+";</script>");
+		res.end();
 	});
 	
 	//console.log(syncData);
