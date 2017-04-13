@@ -2,6 +2,8 @@
 "use strict";
 
 var colors = require('colors');
+var domparser = require('xmldom').DOMParser;
+var xpath = require('xpath');
 var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
@@ -48,8 +50,8 @@ app.post('/', function(req, res){
   // once all the files have been uploaded, send a response to the client
   form.on('end', function() {
 	//res.write();
-    res.end('success');
-	readUploadedFile(fullFilePath);
+	readUploadedFile(res, fullFilePath);
+	res.end();
   });
   form.parse(req);
 });
@@ -62,9 +64,8 @@ app.use(express.static(path.join(__dirname, 'static')));
 app.get('/', function (req, res) {
 	res.writeHead('content-type','text/html');
 	res.write('<html>');
-	res.write('Hello World!<br>');
 	res.write('<form id="fileSelectionForm" method="post" action="" enctype="multipart/form-data">');
-	res.write('<input id="upload-input" type="file" name="uploads[]" multiple="multiple"><br>');
+	res.write('<input id="upload-input" type="file" name="uploads[]"><br>');
 	res.write('</form>');
 	res.write('<script src="fileInput.js"></script>');
 	res.write('</html>');
@@ -76,6 +77,7 @@ app.listen(5001, function () {
 	process.stdout.write('...is listening on port 5001!');
 	process.stdout.write("\n");
 	process.stdout.write("+++++++++++++++++++++++++++++");
+	process.stdout.write("\n");
 })
 
 opn('http://localhost:5001', {app: 'chrome'});
@@ -91,14 +93,30 @@ function getNextItemInfo(){
 	}
 }
 
-function readUploadedFile(target){
-	console.log(">readUploadedFile");
+function readUploadedFile(res, target){
+	console.log(">readUploadedFile fullPath:"+target);
 	//var content = fs.readFileSync(target, 'utf8');
 	//console.log(content);   // Put all of the code here (not the best solution)
-	fs.readFile(target, function(err, data) {
+	var syncData = fs.readFileSync(target, 'utf8');
+	var doc = new domparser().parseFromString(syncData, 'text/xml');
+	//console.log(doc);
+	console.log("+++++++++++++++++++++++++++++++++++++++");
+	console.log(xpath.select('//chars', doc)[0]);
+	//console.log(syncData);
+	
+	/*fs.readFile(target, function(err, data) {
+		if(err){throw err;}
+		//var doc = new domparser().parseFromString(data, 'text/xml');
+		//console.log(xpath.select('/', data));
 		parser.parseString(data, function (err, result) {
-			console.dir(result);
+			//console.dir(result);
 			console.log('Done');
+			res.writeHead('content-type','text/html');
+			res.write('<html>');
+			console.log(result.font.chars[0].char[0]);
+			res.write('</html>');
+			res.end();
+			//res.end('success');
 		});
-	});
+	});*/
 }
