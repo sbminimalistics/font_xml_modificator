@@ -56,6 +56,31 @@ app.post('/', function(req, res){
   form.parse(req);
 });
 
+app.post('/save', function(req, res){
+	var tempFileName = "";
+	var fullFilePath = "";
+	var form = new formidable.IncomingForm();
+	form.on('error', function(err){console.log('An error has occured: \n' + err);});
+	form.on('end', function() {
+		//res.write();
+		console.log("form submited. end fired;");
+		res.end();
+	});
+	form.on('field', function(name, value) {
+		//res.write();
+		console.log("form field '"+name+"' with value "+value+" recieved");
+		if(name == "modifiedChars"){
+			var b = value;
+			console.log("%%%%%%%%%%%%%%%%%%%%%");
+			var c = JSON.parse(value);
+			console.log(c);
+			console.log(c[0].$);
+			console.log("%%%%%%%%%%%%%%%%%%%%%");
+		}
+	});
+	form.parse(req);
+});
+
 
 
 
@@ -101,6 +126,7 @@ function readUploadedFile(res, target){
 	console.log("+++++++++++++++++++++++++++++++++++++++");
 	var chars = xpath.select('//chars', doc)[0];
 	console.log("chars found: "+chars.childNodes.length);
+	console.log(chars.childNodes.toString());
 	var chars2 = xpath.select('//char', doc);
 	
 	parser.parseString(syncData, function (err, result) {
@@ -108,28 +134,30 @@ function readUploadedFile(res, target){
 		if(result == null || result.font == null || result.font.chars[0] == null){
 			throw new Error(colors.bgRed.white(' ERR: selected file does not hold font chars info '));
 		}
-		//console.dir(result);
-		//.$ gives object of attributes;
-		//console.log(result.font.chars[0].char[0].$.xadvance);
-		res.write("<script>var chars = "+JSON.stringify(result)+";</script>");
+		
+		//appending jsonString with comments. They are needed only for readability on the frontend;
+		var n=0;
+		for(var i=0; i<chars.childNodes.length; i++){
+			if(chars.childNodes[i].nodeType == 8){
+				result.font.chars[0].char[n].$["comment"] = encodeURI(chars.childNodes[i].nodeValue);
+				n++;
+			}
+		}
+		//eof appending;
+		
+		var jsonString = JSON.stringify(result);
+			
+		res.writeHead('content-type','text/html');
+		res.write('<html>');
+		res.write('<div id="output"></div>');
+		res.write('<script>var chars = '+jsonString+';</script>');
+		res.write('<link rel="stylesheet" type="text/css" href="modificatorTable.css">');
+		res.write('<form id="saveModifiedValuesForm" method="post" action="save" enctype="multipart/form-data">');
+		res.write('<input id="modifiedChars" type="hidden" name="modifiedChars" value="">');
+		res.write('</form>');
+		res.write('<button id="save">save</button>');
+		res.write('<script src="modificatorTable.js"></script>');
+		res.write('</html>');
 		res.end();
 	});
-	
-	//console.log(syncData);
-	
-	/*fs.readFile(target, function(err, data) {
-		if(err){throw err;}
-		//var doc = new domparser().parseFromString(data, 'text/xml');
-		//console.log(xpath.select('/', data));
-		parser.parseString(data, function (err, result) {
-			//console.dir(result);
-			console.log('Done');
-			res.writeHead('content-type','text/html');
-			res.write('<html>');
-			console.log(result.font.chars[0].char[0]);
-			res.write('</html>');
-			res.end();
-			//res.end('success');
-		});
-	});*/
 }
