@@ -7,11 +7,10 @@ var xmlserializer = require('xmldom').XMLSerializer;
 var xpath = require('xpath');
 var fs = require('fs');
 var path = require('path');
-var _ = require('underscore');
 var express = require('express');
 var session = require('express-session');
 var busboy = require('connect-busboy'); //middleware for form/file upload
-var fs = require('fs-extra'); //File System - for file manipulation
+var fs = require('fs-extra');
 var opn = require('opn')
 var formidable = require('formidable');
 var xml2js = require('xml2js');
@@ -45,7 +44,7 @@ app.use(session({
   saveUninitialized: true
 }))
 app.post('/', function(req, res){
-	console.log("post");
+	//console.log("post");
 	var tempFileName = "";
 	var fullFilePath = "";
 	var form = new formidable.IncomingForm();
@@ -70,7 +69,7 @@ app.post('/', function(req, res){
 	res.writeHead('content-type','text/html');
 	res.write('<html>');
 	outputBrowseForm(res);
-	readUploadedFile(res, fullFilePath);
+	readUploadedFile(res, fullFilePath, req.session.origFileName);
 	res.write('</html>');
 	res.end();
   });
@@ -89,9 +88,9 @@ app.post('/save', function(req, res){
 		//console.log(c);
 		//console.log(c[0].$);
 		var fileContentToSend = saveModifiedFile(req.session.fullFilePath, modifiedChars, propertiesAllowedForModification);
-		console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
-		console.log(">>>>>"+req.session.fullFilePath);
-		console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+		console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+		console.log(">"+req.session.fullFilePath);
+		console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
 		res.writeHead(200, {
 			'Content-Type': 'text/xml',
 			'Content-Length': fileContentToSend.length,
@@ -144,14 +143,14 @@ function outputBrowseForm(res){
 	res.write('<script src="fileInput.js"></script>');
 }
 
-function readUploadedFile(res, target){
-	console.log(">readUploadedFile fullPath:"+target);
+function readUploadedFile(res, target, origFileName){
+	console.log(">readUploadedFile: "+target);
 	//console.log("+++++++++++++++++++++++++++++++++++++++");
 	var syncData = fs.readFileSync(target, 'utf8');
 	var doc = new domparser().parseFromString(syncData, 'text/xml');
 	//console.log(doc);
 	var chars = xpath.select('//chars', doc)[0];
-	console.log("characters found: "+chars.childNodes.length);
+	console.log(">characters found: "+chars.childNodes.length);
 	//console.log(chars.childNodes.toString());
 	var chars2 = xpath.select('//char', doc);
 	
@@ -176,7 +175,7 @@ function readUploadedFile(res, target){
 		//res.writeHead('content-type','text/html');
 		//res.write('<html>');
 		res.write('<div id="output"></div>');
-		res.write('<script>var chars = '+jsonString+';</script>');
+		res.write('<script>var chars = '+jsonString+'; var fileName = "'+origFileName+'";</script>');
 		res.write('<link rel="stylesheet" type="text/css" href="modificatorTable.css">');
 		res.write('<form id="saveModifiedValuesForm" method="post" action="save" enctype="multipart/form-data">');
 		res.write('<input id="modifiedChars" type="hidden" name="modifiedChars" value="">');

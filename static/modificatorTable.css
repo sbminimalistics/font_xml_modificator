@@ -3,7 +3,7 @@ table{
 }
 
 table, th, td {
-    border: 1px solid grey;
+    border: 1px solid lightgrey;
 	font-family: Arial, Helvetica, sans-serif;
 	font-size: 12px;
 }
@@ -22,13 +22,22 @@ td>input {
 }
 
 .up{
-	margin-left: 4px;
-	margin-right: 1px;
+	margin-left: 2px;
+	margin-right: 2px;
 	background: url("ico_up.png") no-repeat center center;
 }
 
 .down{
+	margin-left: 2px;
+	margin-right: 2px;
 	background: url("ico_down.png") no-repeat center center;
+}
+
+#filename{
+	background-color: #e0e0f0;
+	padding-top: 8px;
+	padding-bottom: 8px;
+	font-size: 14px;
 }
 
 .row_header{
@@ -42,6 +51,29 @@ td>input {
 	padding-bottom: 8px;
 	line-height: 30px;
 }
+
+.row_select_all_none>td{
+	padding-top: 4px;
+	padding-bottom: 4px;
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
+.row_select_all_none button{
+	margin-left: 1px;
+	margin-right: 1px;
+}
+
+.column_value_modifieble:hover{
+	background-color: #ddd;
+}
+
+/*
+.column_value_modifieble input[type="checkbox"]{
+	width: 20px;
+	height: 20px;
+}
+*/
 
 .row_value{
 	line-height: 20px;
