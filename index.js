@@ -8,6 +8,7 @@ var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
 var express = require('express');
+var session = require('express-session');
 //var router = express.Router();
 //var bodyParser = require('body-parser');
 var busboy = require('connect-busboy'); //middleware for form/file upload
@@ -31,6 +32,13 @@ Error.stackTraceLimit = 0;
 //server initialization;
 var app = express();
 app.use(busboy());
+app.set('trust proxy', 1) // trust first proxy 
+app.use(session({
+  secret: 'fxm',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: true }
+}))
 app.post('/', function(req, res){
 	var tempFileName = "";
 	var fullFilePath = "";
@@ -51,7 +59,7 @@ app.post('/', function(req, res){
   // once all the files have been uploaded, send a response to the client
   form.on('end', function() {
 	//res.write();
-	readUploadedFile(res, fullFilePath);
+	readUploadedFile(req, res, fullFilePath);
   });
   form.parse(req);
 });
@@ -73,8 +81,9 @@ app.post('/save', function(req, res){
 			var b = value;
 			console.log("%%%%%%%%%%%%%%%%%%%%%");
 			var c = JSON.parse(value);
-			console.log(c);
-			console.log(c[0].$);
+			//console.log(c);
+			//console.log(c[0].$);
+			console.log(req.session.origDoc);
 			console.log("%%%%%%%%%%%%%%%%%%%%%");
 		}
 	});
@@ -118,10 +127,11 @@ function getNextItemInfo(){
 	}
 }
 
-function readUploadedFile(res, target){
+function readUploadedFile(req, res, target){
 	console.log(">readUploadedFile fullPath:"+target);
 	var syncData = fs.readFileSync(target, 'utf8');
 	var doc = new domparser().parseFromString(syncData, 'text/xml');
+	req.session.origDoc = doc;
 	//console.log(doc);
 	console.log("+++++++++++++++++++++++++++++++++++++++");
 	var chars = xpath.select('//chars', doc)[0];
