@@ -9,10 +9,8 @@ var path = require('path');
 var _ = require('underscore');
 var express = require('express');
 var session = require('express-session');
-//var router = express.Router();
-//var bodyParser = require('body-parser');
 var busboy = require('connect-busboy'); //middleware for form/file upload
-var fs = require('fs-extra');       //File System - for file manipulation
+var fs = require('fs-extra'); //File System - for file manipulation
 var opn = require('opn')
 var formidable = require('formidable');
 var xml2js = require('xml2js');
@@ -32,12 +30,11 @@ Error.stackTraceLimit = 0;
 //server initialization;
 var app = express();
 app.use(busboy());
-app.set('trust proxy', 1) // trust first proxy 
+app.set('trust proxy', 1);
 app.use(session({
   secret: 'fxm',
   resave: false,
-  saveUninitialized: true,
-  cookie: { secure: true }
+  saveUninitialized: true
 }))
 app.post('/', function(req, res){
 	var tempFileName = "";
@@ -47,6 +44,7 @@ app.post('/', function(req, res){
 	form.multiples = true;
 	form.uploadDir = path.join(__dirname, '/uploads');
 	form.on('file', function(field, file) {
+		req.session.origFileName = file.name;
 		tempFileName = new Date().toDateString().split(" ").join("")
 			+"_"
 			+new Date().toGMTString().split(" ")[4].split(":").join("")
@@ -59,7 +57,8 @@ app.post('/', function(req, res){
   // once all the files have been uploaded, send a response to the client
   form.on('end', function() {
 	//res.write();
-	readUploadedFile(req, res, fullFilePath);
+	req.session.fullFilePath = fullFilePath;
+	readUploadedFile(res, fullFilePath);
   });
   form.parse(req);
 });
@@ -71,7 +70,6 @@ app.post('/save', function(req, res){
 	form.on('error', function(err){console.log('An error has occured: \n' + err);});
 	form.on('end', function() {
 		//res.write();
-		console.log("form submited. end fired;");
 		res.end();
 	});
 	form.on('field', function(name, value) {
@@ -79,17 +77,24 @@ app.post('/save', function(req, res){
 		console.log("form field '"+name+"' with value "+value+" recieved");
 		if(name == "modifiedChars"){
 			var b = value;
-			console.log("%%%%%%%%%%%%%%%%%%%%%");
-			var c = JSON.parse(value);
+			console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+			//var c = JSON.parse(value);
 			//console.log(c);
 			//console.log(c[0].$);
-			console.log(req.session.origDoc);
-			console.log("%%%%%%%%%%%%%%%%%%%%%");
+			var fileContentToSend = saveModifiedFile(req.session.fullFilePath, JSON.parse(value));
+			console.log(">>>>>"+req.session.fullFilePath);
+			console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+			res.writeHead(200, {
+				'Content-Type': 'text/xml',
+				'Content-Length': fileContentToSend.length,
+				'Content-Disposition': 'attachment; filename='+req.session.origFileName
+			});
+			res.write(fileContentToSend, 'binary');
+			res.end();
 		}
 	});
 	form.parse(req);
 });
-
 
 
 
@@ -127,11 +132,10 @@ function getNextItemInfo(){
 	}
 }
 
-function readUploadedFile(req, res, target){
+function readUploadedFile(res, target){
 	console.log(">readUploadedFile fullPath:"+target);
 	var syncData = fs.readFileSync(target, 'utf8');
 	var doc = new domparser().parseFromString(syncData, 'text/xml');
-	req.session.origDoc = doc;
 	//console.log(doc);
 	console.log("+++++++++++++++++++++++++++++++++++++++");
 	var chars = xpath.select('//chars', doc)[0];
@@ -170,4 +174,14 @@ function readUploadedFile(req, res, target){
 		res.write('</html>');
 		res.end();
 	});
+}
+
+function saveModifiedFile(origFilePath, modifications){
+	console.log(">saveModifiedFile");
+	console.log("modifications: "+modifications);
+	
+	var syncData = fs.readFileSync(origFilePath, 'utf8');
+	var doc = new domparser().parseFromString(syncData, 'text/xml');
+	
+	return syncData;
 }
