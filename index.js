@@ -19,13 +19,20 @@ var parser = new xml2js.Parser();
 
 var modif = process.argv[2];
 
+//reducing stackTraceLimit to get less trash inside console in case of error;
 Error.stackTraceLimit = 0;
 
-			//printint informative head;
-			process.stdout.write("+++++++++++++++++++++++++++++");
-			process.stdout.write("\n");
-			console.log("font xml modificator");
-			//eof of informative head;
+//creating /uploads dir if it doesn't exist;
+var dir = path.join(__dirname, '/uploads');
+if (!fs.existsSync(dir)){
+    fs.mkdirSync(dir);
+}
+
+	//printint informative head;
+	process.stdout.write("+++++++++++++++++++++++++++++");
+	process.stdout.write("\n");
+	console.log("font xml modificator");
+	//eof of informative head;
 
 			
 //server initialization;
@@ -38,6 +45,7 @@ app.use(session({
   saveUninitialized: true
 }))
 app.post('/', function(req, res){
+	console.log("post");
 	var tempFileName = "";
 	var fullFilePath = "";
 	var form = new formidable.IncomingForm();
@@ -59,7 +67,12 @@ app.post('/', function(req, res){
   form.on('end', function() {
 	//res.write();
 	req.session.fullFilePath = fullFilePath;
+	res.writeHead('content-type','text/html');
+	res.write('<html>');
+	outputBrowseForm(res);
 	readUploadedFile(res, fullFilePath);
+	res.write('</html>');
+	res.end();
   });
   form.parse(req);
 });
@@ -72,12 +85,11 @@ app.post('/save', function(req, res){
 	form.on('error', function(err){console.log('An error has occured: \n' + err);});
 	form.on('end', function() {
 		//res.write();
-		//var b = value;
-		console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
 		//var c = JSON.parse(value);
 		//console.log(c);
 		//console.log(c[0].$);
 		var fileContentToSend = saveModifiedFile(req.session.fullFilePath, modifiedChars, propertiesAllowedForModification);
+		console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
 		console.log(">>>>>"+req.session.fullFilePath);
 		console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
 		res.writeHead(200, {
@@ -90,7 +102,7 @@ app.post('/save', function(req, res){
 	});
 	form.on('field', function(name, value) {
 		//res.write();
-		console.log("form field '"+name+"' with value "+value+" recieved");
+		//console.log("form field '"+name+"' with value "+value+" recieved");
 		if(name == "modifiedChars"){
 			modifiedChars = JSON.parse(value);
 		}else if(name == "propertiesAllowedForModification"){
@@ -107,10 +119,7 @@ app.use(express.static(path.join(__dirname, 'static')));
 app.get('/', function (req, res) {
 	res.writeHead('content-type','text/html');
 	res.write('<html>');
-	res.write('<form id="fileSelectionForm" method="post" action="" enctype="multipart/form-data">');
-	res.write('<input id="upload-input" type="file" name="uploads[]"><br>');
-	res.write('</form>');
-	res.write('<script src="fileInput.js"></script>');
+	outputBrowseForm(res);
 	res.write('</html>');
 	res.end();
 });
@@ -128,23 +137,22 @@ opn('http://localhost:5001', {app: 'chrome'});
 
 
 
-function getNextItemInfo(){
-	currentItemWaittingForStat++;
-	if(currentItemWaittingForStat < fileNames.length){
-		var file = path.resolve('.', fileNames[currentItemWaittingForStat]);
-		fs.stat(file, interpreterItem);
-	}
+function outputBrowseForm(res){
+	res.write('<form id="fileSelectionForm" method="post" action="" enctype="multipart/form-data">');
+	res.write('<input id="upload-input" type="file" name="uploads[]"><br>');
+	res.write('</form>');
+	res.write('<script src="fileInput.js"></script>');
 }
 
 function readUploadedFile(res, target){
 	console.log(">readUploadedFile fullPath:"+target);
+	//console.log("+++++++++++++++++++++++++++++++++++++++");
 	var syncData = fs.readFileSync(target, 'utf8');
 	var doc = new domparser().parseFromString(syncData, 'text/xml');
 	//console.log(doc);
-	console.log("+++++++++++++++++++++++++++++++++++++++");
 	var chars = xpath.select('//chars', doc)[0];
-	console.log("chars found: "+chars.childNodes.length);
-	console.log(chars.childNodes.toString());
+	console.log("characters found: "+chars.childNodes.length);
+	//console.log(chars.childNodes.toString());
 	var chars2 = xpath.select('//char', doc);
 	
 	parser.parseString(syncData, function (err, result) {
@@ -165,8 +173,8 @@ function readUploadedFile(res, target){
 		
 		var jsonString = JSON.stringify(result);
 			
-		res.writeHead('content-type','text/html');
-		res.write('<html>');
+		//res.writeHead('content-type','text/html');
+		//res.write('<html>');
 		res.write('<div id="output"></div>');
 		res.write('<script>var chars = '+jsonString+';</script>');
 		res.write('<link rel="stylesheet" type="text/css" href="modificatorTable.css">');
@@ -176,38 +184,26 @@ function readUploadedFile(res, target){
 		res.write('</form>');
 		res.write('<button id="save">save</button>');
 		res.write('<script src="modificatorTable.js"></script>');
-		res.write('</html>');
-		res.end();
+		//res.write('</html>');
+		//res.end();
 	});
 }
 
 function saveModifiedFile(origFilePath, modifications, propertiesToOverwrite){
-	console.log(">saveModifiedFile");
-	console.log("modifications: "+modifications);
-	console.log("modifications length: "+modifications.length);
-	console.log("modifications first: "+modifications[0]);
-	console.log("modifications first: "+modifications[0].$["id"]);
-	
-	console.log("propertiesToOverwrite: "+propertiesToOverwrite.toString());
-	
+	//console.log(">saveModifiedFile");	
+	//console.log("propertiesToOverwrite: "+propertiesToOverwrite.toString());
 	
 	var syncData = fs.readFileSync(origFilePath, 'utf8');
 	var doc = new domparser().parseFromString(syncData, 'text/xml');
 	
 	for(var i=0; i<modifications.length; i++){
 		var node = xpath.select('//char[@id='+modifications[i].$["id"]+']', doc)[0];
-		//console.log("xml node holding id: "+modifications[i].$["id"]+" to update: "+a);
-		//a.setAttribute("x", "-1");
-		//console.log("xml node holding id: "+modifications[i].$["id"]+" to update: "+a);
 		for(var j=0; j<propertiesToOverwrite.length; j++){
-			//console.log(propertiesToOverwrite[j] +": "+ modifications[i].$[propertiesToOverwrite[j]]);
 			node.setAttribute(propertiesToOverwrite[j], modifications[i].$[propertiesToOverwrite[j]]);
 		}
 	}
 	
 	var XMLS = new xmlserializer();
-	
-	console.log("xmlserializer: "+xmlserializer);
-	console.log("xmlserializer: "+XMLS);
+	//console.log("xmlserializer: "+XMLS);
 	return XMLS.serializeToString(doc);
 }
