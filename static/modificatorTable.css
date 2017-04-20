@@ -7,6 +7,10 @@ table, th, td {
 	font-family: Georgia, "Times New Roman", Serif;
 }
 
+td>input {
+	float: left;
+}
+
 .modify_button{
 	width: 40px;
 	height: 40px;

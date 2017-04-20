@@ -13,7 +13,7 @@ var ModificatorTable = (
 			}
 		}
 		
-		function renderTable(){
+		function renderTable(isUpdate){
 			console.log(">renderTable");
 			if(chars && chars.length > 0){
 				var tableContent = '<table><tr class="row_header">';
@@ -31,7 +31,13 @@ var ModificatorTable = (
 					tableContent += '<tr class="row_value">';
 					for (var j=0; j<propertiesAvailable.length; j++){
 						if(propertiesAllowedForModification.indexOf(propertiesAvailable[j]) > -1){
-							tableContent += '<td class="column_value_modifieble">';
+							var cbId = "cb_"+chars[i].$["id"]+"_"+propertiesAvailable[j];
+							if((!isUpdate && parseInt(chars[i].$["id"]) > 47 && parseInt(chars[i].$["id"]) < 58) || (isUpdate && document.getElementById(cbId).checked)){
+								tableContent += '<td class="column_value_modifieble"><input type="checkbox" id="'+cbId+'" checked="true">';
+							}else{
+								tableContent += '<td class="column_value_modifieble"><input type="checkbox" id="'+cbId+'">';
+							}
+							//tableContent += '<td class="column_value_modifieble"><input type="checkbox" checked="true">';
 						}else{
 							tableContent += '<td class="column_value">';
 						}
@@ -64,9 +70,14 @@ var ModificatorTable = (
 			},
 			changeProperty: function(targetPropertyName, step){
 				for(var i=0; i<chars.length; i++){
-					chars[i].$[targetPropertyName] = parseInt(chars[i].$[targetPropertyName])+step;
+					//console.log(">>>"+("cb_"+chars[i].$['id']+"_"+chars[i].$[targetPropertyName]));
+					var cbChecked = document.getElementById("cb_"+chars[i].$['id']+"_"+targetPropertyName).checked;
+					console.log("is checked:"+cbChecked);
+					if(cbChecked){
+						chars[i].$[targetPropertyName] = parseInt(chars[i].$[targetPropertyName])+step;
+					}
 				}
-				renderTable();
+				renderTable(true);
 			},
 			getPropertiesAllowedForModification: function(){
 				return propertiesAllowedForModification;
