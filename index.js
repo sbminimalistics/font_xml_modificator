@@ -3,6 +3,7 @@
 
 var colors = require('colors');
 var domparser = require('xmldom').DOMParser;
+var xmlserializer = require('xmldom').XMLSerializer;
 var xpath = require('xpath');
 var fs = require('fs');
 var path = require('path');
@@ -67,30 +68,33 @@ app.post('/save', function(req, res){
 	var tempFileName = "";
 	var fullFilePath = "";
 	var form = new formidable.IncomingForm();
+	var modifiedChars, propertiesAllowedForModification;
 	form.on('error', function(err){console.log('An error has occured: \n' + err);});
 	form.on('end', function() {
 		//res.write();
+		//var b = value;
+		console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+		//var c = JSON.parse(value);
+		//console.log(c);
+		//console.log(c[0].$);
+		var fileContentToSend = saveModifiedFile(req.session.fullFilePath, modifiedChars, propertiesAllowedForModification);
+		console.log(">>>>>"+req.session.fullFilePath);
+		console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+		res.writeHead(200, {
+			'Content-Type': 'text/xml',
+			'Content-Length': fileContentToSend.length,
+			'Content-Disposition': 'attachment; filename='+req.session.origFileName
+		});
+		res.write(fileContentToSend, 'binary');
 		res.end();
 	});
 	form.on('field', function(name, value) {
 		//res.write();
 		console.log("form field '"+name+"' with value "+value+" recieved");
 		if(name == "modifiedChars"){
-			var b = value;
-			console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
-			//var c = JSON.parse(value);
-			//console.log(c);
-			//console.log(c[0].$);
-			var fileContentToSend = saveModifiedFile(req.session.fullFilePath, JSON.parse(value));
-			console.log(">>>>>"+req.session.fullFilePath);
-			console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
-			res.writeHead(200, {
-				'Content-Type': 'text/xml',
-				'Content-Length': fileContentToSend.length,
-				'Content-Disposition': 'attachment; filename='+req.session.origFileName
-			});
-			res.write(fileContentToSend, 'binary');
-			res.end();
+			modifiedChars = JSON.parse(value);
+		}else if(name == "propertiesAllowedForModification"){
+			propertiesAllowedForModification = JSON.parse(value);
 		}
 	});
 	form.parse(req);
@@ -168,6 +172,7 @@ function readUploadedFile(res, target){
 		res.write('<link rel="stylesheet" type="text/css" href="modificatorTable.css">');
 		res.write('<form id="saveModifiedValuesForm" method="post" action="save" enctype="multipart/form-data">');
 		res.write('<input id="modifiedChars" type="hidden" name="modifiedChars" value="">');
+		res.write('<input id="propertiesAllowedForModification" type="hidden" name="propertiesAllowedForModification" value="">');
 		res.write('</form>');
 		res.write('<button id="save">save</button>');
 		res.write('<script src="modificatorTable.js"></script>');
@@ -176,12 +181,33 @@ function readUploadedFile(res, target){
 	});
 }
 
-function saveModifiedFile(origFilePath, modifications){
+function saveModifiedFile(origFilePath, modifications, propertiesToOverwrite){
 	console.log(">saveModifiedFile");
 	console.log("modifications: "+modifications);
+	console.log("modifications length: "+modifications.length);
+	console.log("modifications first: "+modifications[0]);
+	console.log("modifications first: "+modifications[0].$["id"]);
+	
+	console.log("propertiesToOverwrite: "+propertiesToOverwrite.toString());
+	
 	
 	var syncData = fs.readFileSync(origFilePath, 'utf8');
 	var doc = new domparser().parseFromString(syncData, 'text/xml');
 	
-	return syncData;
+	for(var i=0; i<modifications.length; i++){
+		var node = xpath.select('//char[@id='+modifications[i].$["id"]+']', doc)[0];
+		//console.log("xml node holding id: "+modifications[i].$["id"]+" to update: "+a);
+		//a.setAttribute("x", "-1");
+		//console.log("xml node holding id: "+modifications[i].$["id"]+" to update: "+a);
+		for(var j=0; j<propertiesToOverwrite.length; j++){
+			//console.log(propertiesToOverwrite[j] +": "+ modifications[i].$[propertiesToOverwrite[j]]);
+			node.setAttribute(propertiesToOverwrite[j], modifications[i].$[propertiesToOverwrite[j]]);
+		}
+	}
+	
+	var XMLS = new xmlserializer();
+	
+	console.log("xmlserializer: "+xmlserializer);
+	console.log("xmlserializer: "+XMLS);
+	return XMLS.serializeToString(doc);
 }

@@ -14,6 +14,7 @@ var ModificatorTable = (
 		}
 		
 		function renderTable(){
+			console.log(">renderTable");
 			if(chars && chars.length > 0){
 				var tableContent = '<table><tr class="row_header">';
 				for (var property in chars[0].$){
@@ -49,6 +50,7 @@ var ModificatorTable = (
 		
 		return {
 			setData: function(target){
+				console.log(">setData");
 				data = target;
 				chars = target.font.chars[0].char;
 				extractAvailableProperties();
@@ -65,6 +67,9 @@ var ModificatorTable = (
 					chars[i].$[targetPropertyName] = parseInt(chars[i].$[targetPropertyName])+step;
 				}
 				renderTable();
+			},
+			getPropertiesAllowedForModification: function(){
+				return propertiesAllowedForModification;
 			}
 		}
 	}
@@ -90,6 +95,7 @@ document.getElementById("save").addEventListener('click', saveModifiedValuesHand
 function saveModifiedValuesHandler(e){
 	console.log("saveModifiedValuesHandler e:"+e.value);
 	document.getElementById("modifiedChars").setAttribute("value", JSON.stringify(modificatorTable.getModifiedChars()));
+	document.getElementById("propertiesAllowedForModification").setAttribute("value", JSON.stringify(modificatorTable.getPropertiesAllowedForModification()));
 	document.getElementById("saveModifiedValuesForm").submit();
 	e.preventDefault();
 }
