@@ -2,9 +2,13 @@ var ModificatorTable = (
 	function(){
 		const propertiesAllowedForModification = ["x", "y", "width", "height", "xoffset", "yoffset", "xadvance"];
 		var data = null;
+		var fileData = null;
+		var xmlDoc = null;
 		var chars = [];
 		var output = document.querySelector("#output");
 		var propertiesAvailable = [];
+		var parser = new DOMParser();
+		var serializer = new XMLSerializer();
 		
 		function extractAvailableProperties(){
 			propertiesAvailable = [];
@@ -53,6 +57,14 @@ var ModificatorTable = (
 					}
 					tableContent += "</tr>";
 				}
+				//assemble and output string representation of the whole xml doc.
+				var charNodes = xmlDoc.getElementsByTagName("chars")[0].getElementsByTagName("char");
+				for(var i=0; i<chars.length; i++){
+					for(var j=0; j<propertiesAllowedForModification.length; j++){
+						charNodes[i].setAttribute(propertiesAllowedForModification[j], chars[i].$[propertiesAllowedForModification[j]]);
+					}
+				}
+				tableContent += '<tr class="row_full_doc_string"><td class="column_full_doc_string" colspan="'+propertiesAvailable.length+'"><textarea id="full_doc_string" rows="10">'+serializer.serializeToString(xmlDoc)+'</textarea></td></tr>';
 				tableContent += "</table>";
 				output.innerHTML = tableContent;
 			}else{
@@ -61,9 +73,11 @@ var ModificatorTable = (
 		}
 		
 		return {
-			setData: function(target){
+			setData: function(target, targetFileData){
 				//console.log(">setData");
 				data = target;
+				fileData = targetFileData;
+				xmlDoc = parser.parseFromString(fileData, "text/xml");
 				chars = target.font.chars[0].char;
 				extractAvailableProperties();
 				renderTable();
@@ -99,12 +113,12 @@ var modificatorTable = new ModificatorTable();
 //console.log(chars);
 //console.log(JSON.parse(chars));
 //modificatorTable.setData(JSON.parse(chars));
-modificatorTable.setData(chars);
+modificatorTable.setData(chars, decodeURIComponent(fileData));
 //document.getElementById("modificatorTable").addEventListener("click", tableClickHandler, false);
 document.addEventListener("click", tableClickHandler, false);
 
 function tableClickHandler(e){
-	console.log(e.target);
+	//console.log(e.target);
 	var cb = document.getElementById("cb_"+e.target.id);
 	if(!cb){return;}
 	if(cb.checked){
@@ -127,16 +141,16 @@ function selectAllHandler(target){
 	//console.log(">selectAllHandler target:"+target);
 	var chars = modificatorTable.getChars();
 	for(var i=0; i<chars.length; i++){
-		console.log("cb_"+chars[i].$['id']+"_"+target);
+		//console.log("cb_"+chars[i].$['id']+"_"+target);
 		document.getElementById("cb_"+chars[i].$['id']+"_"+target).setAttribute("checked", true);
 	}
 }
 
 function selectNoneHandler(target){
-	console.log(">selectNoneHandler target:"+target);
+	//console.log(">selectNoneHandler target:"+target);
 	var chars = modificatorTable.getChars();
 	for(var i=0; i<chars.length; i++){
-		console.log("cb_"+chars[i].$['id']+"_"+target);
+		//console.log("cb_"+chars[i].$['id']+"_"+target);
 		document.getElementById("cb_"+chars[i].$['id']+"_"+target).removeAttribute('checked');
 	}
 }

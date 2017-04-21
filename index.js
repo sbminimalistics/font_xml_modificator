@@ -174,8 +174,11 @@ function readUploadedFile(res, target, origFileName){
 			
 		//res.writeHead('content-type','text/html');
 		//res.write('<html>');
+		//console.log("------");
+		//console.log("syncData:"+encodeURIComponent(syncData));
+		//console.log("------");
 		res.write('<div id="output"></div>');
-		res.write('<script>var chars = '+jsonString+'; var fileName = "'+origFileName+'";</script>');
+		res.write('<script>var chars = '+jsonString+'; var fileName = "'+origFileName+'"; var fileData="'+encodeURIComponent(syncData)+'";</script>');
 		res.write('<link rel="stylesheet" type="text/css" href="modificatorTable.css">');
 		res.write('<form id="saveModifiedValuesForm" method="post" action="save" enctype="multipart/form-data">');
 		res.write('<input id="modifiedChars" type="hidden" name="modifiedChars" value="">');

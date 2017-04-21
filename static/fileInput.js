@@ -1,4 +1,3 @@
-console.log("fileInput loaded");
 document.getElementById("upload-input").addEventListener('change', fileSelectionChangedHandler);
 
 function fileSelectionChangedHandler(e){
