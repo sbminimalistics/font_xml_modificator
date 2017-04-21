@@ -77,7 +77,7 @@ var ModificatorTable = (
 			var max = -999;
 			for(var index in chars){
 				if(parseInt(chars[index].$["id"]) > 47 && parseInt(chars[index].$["id"]) < 58){
-					max = Math.max(chars[index].$["id"], max);
+					max = Math.max(chars[index].$["width"], max);
 				}
 			}
 			for(var index in chars){
