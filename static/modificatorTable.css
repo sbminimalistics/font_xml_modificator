@@ -59,9 +59,11 @@ td>input {
 	padding-right: 10px;
 }
 
-.row_select_all_none button{
+button{
 	margin-left: 1px;
 	margin-right: 1px;
+	margin-top: 1px;
+	margin-bottom: 1px;
 }
 
 .column_value_modifieble:hover{

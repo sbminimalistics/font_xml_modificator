@@ -185,6 +185,8 @@ function readUploadedFile(res, target, origFileName){
 		res.write('<input id="propertiesAllowedForModification" type="hidden" name="propertiesAllowedForModification" value="">');
 		res.write('</form>');
 		res.write('<button id="save">save</button>');
+		res.write('<button id="converttocountup">convert to count-up</button>');
+		res.write('<button id="normalize">normalize</button>');
 		res.write('<script src="modificatorTable.js"></script>');
 		//res.write('</html>');
 		//res.end();

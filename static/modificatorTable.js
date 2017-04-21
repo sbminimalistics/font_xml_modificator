@@ -72,6 +72,33 @@ var ModificatorTable = (
 			}
 		}
 		
+		function convertToCountUp(){
+			console.log(">convertToCountUp");
+			var max = -999;
+			for(var index in chars){
+				if(parseInt(chars[index].$["id"]) > 47 && parseInt(chars[index].$["id"]) < 58){
+					max = Math.max(chars[index].$["id"], max);
+				}
+			}
+			for(var index in chars){
+				if(parseInt(chars[index].$["id"]) > 47 && parseInt(chars[index].$["id"]) < 58){
+					chars[index].$["xadvance"] = max+1;
+					chars[index].$["xoffset"] = max+1 - parseInt(chars[index].$["width"]);
+				}
+			}
+			renderTable(true);
+		}
+		
+		function normalize(){
+			console.log(">normalize");
+			for(var index in chars){
+				var w = chars[index].$["width"];
+				chars[index].$["xadvance"] = parseInt(w)+1;
+				chars[index].$["xoffset"] = 1;
+			}
+			renderTable(true);
+		}
+		
 		return {
 			setData: function(target, targetFileData){
 				//console.log(">setData");
@@ -104,7 +131,9 @@ var ModificatorTable = (
 			},
 			getChars: function(){
 				return chars;
-			}
+			},
+			convertToCountUp: convertToCountUp,
+			normalize: normalize
 		}
 	}
 );
@@ -156,6 +185,8 @@ function selectNoneHandler(target){
 }
 
 document.getElementById("save").addEventListener('click', saveModifiedValuesHandler);
+document.getElementById("converttocountup").addEventListener('click', modificatorTable.convertToCountUp);
+document.getElementById("normalize").addEventListener('click', modificatorTable.normalize);
 
 function saveModifiedValuesHandler(e){
 	//console.log("saveModifiedValuesHandler e:"+e.value);
