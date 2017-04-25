@@ -19,7 +19,7 @@ var parser = new xml2js.Parser();
 var modif = process.argv[2];
 
 //reducing stackTraceLimit to get less trash inside console in case of error;
-Error.stackTraceLimit = 0;
+//Error.stackTraceLimit = 0;
 
 //creating /uploads dir if it doesn't exist;
 var dir = path.join(__dirname, '/uploads');
@@ -66,7 +66,7 @@ app.post('/', function(req, res){
   form.on('end', function() {
 	//res.write();
 	req.session.fullFilePath = fullFilePath;
-	res.writeHead('content-type','text/html');
+	res.setHeader('content-type','text/html');
 	res.write('<html>');
 	outputBrowseForm(res);
 	readUploadedFile(res, fullFilePath, req.session.origFileName);
@@ -116,7 +116,7 @@ app.post('/save', function(req, res){
 app.use(express.static(path.join(__dirname, 'static')));
 
 app.get('/', function (req, res) {
-	res.writeHead('content-type','text/html');
+	res.setHeader('content-type','text/html');
 	res.write('<html>');
 	outputBrowseForm(res);
 	res.write('</html>');
