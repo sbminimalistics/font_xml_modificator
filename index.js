@@ -22,9 +22,24 @@ var modif = process.argv[2];
 //Error.stackTraceLimit = 0;
 
 //creating /uploads dir if it doesn't exist;
+//otherwise delete dir content;
 var dir = path.join(__dirname, '/uploads');
 if (!fs.existsSync(dir)){
     fs.mkdirSync(dir);
+}else{
+	try{
+		var files = fs.readdirSync(dir);
+	}catch(e){return;}
+	if (files.length > 0){
+		for (var i = 0; i < files.length; i++) {
+			var filePath = path.join(dir, files[i]);
+			if (fs.statSync(filePath).isFile()){
+				fs.unlinkSync(filePath);
+			}else{
+				rmDir(filePath);
+			}
+		}
+	}
 }
 
 	//printint informative head;
@@ -83,14 +98,10 @@ app.post('/save', function(req, res){
 	var modifiedChars, propertiesAllowedForModification;
 	form.on('error', function(err){console.log('An error has occured: \n' + err);});
 	form.on('end', function() {
-		//res.write();
-		//var c = JSON.parse(value);
-		//console.log(c);
-		//console.log(c[0].$);
 		var fileContentToSend = saveModifiedFile(req.session.fullFilePath, modifiedChars, propertiesAllowedForModification);
-		console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
-		console.log(">"+req.session.fullFilePath);
-		console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+		//console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+		//console.log(">"+req.session.fullFilePath);
+		//console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
 		res.writeHead(200, {
 			'Content-Type': 'text/xml',
 			'Content-Length': fileContentToSend.length,
@@ -100,8 +111,6 @@ app.post('/save', function(req, res){
 		res.end();
 	});
 	form.on('field', function(name, value) {
-		//res.write();
-		//console.log("form field '"+name+"' with value "+value+" recieved");
 		if(name == "modifiedChars"){
 			modifiedChars = JSON.parse(value);
 		}else if(name == "propertiesAllowedForModification"){
@@ -145,7 +154,6 @@ function outputBrowseForm(res){
 
 function readUploadedFile(res, target, origFileName){
 	console.log(">readUploadedFile: "+target);
-	//console.log("+++++++++++++++++++++++++++++++++++++++");
 	var syncData = fs.readFileSync(target, 'utf8');
 	var doc = new domparser().parseFromString(syncData, 'text/xml');
 	//console.log(doc);
@@ -153,13 +161,11 @@ function readUploadedFile(res, target, origFileName){
 	console.log(">characters found: "+chars.childNodes.length);
 	//console.log(chars.childNodes.toString());
 	var chars2 = xpath.select('//char', doc);
-	
 	parser.parseString(syncData, function (err, result) {
 		if(err){throw err;}
 		if(result == null || result.font == null || result.font.chars[0] == null){
 			throw new Error(colors.bgRed.white(' ERR: selected file does not hold font chars info '));
 		}
-		
 		//appending jsonString with comments. They are needed only for readability on the frontend;
 		var n=0;
 		for(var i=0; i<chars.childNodes.length; i++){
@@ -171,7 +177,6 @@ function readUploadedFile(res, target, origFileName){
 		//eof appending;
 		
 		var jsonString = JSON.stringify(result);
-			
 		//res.writeHead('content-type','text/html');
 		//res.write('<html>');
 		//console.log("------");
@@ -196,7 +201,7 @@ function readUploadedFile(res, target, origFileName){
 function saveModifiedFile(origFilePath, modifications, propertiesToOverwrite){
 	//console.log(">saveModifiedFile");	
 	//console.log("propertiesToOverwrite: "+propertiesToOverwrite.toString());
-	
+	//console.log(">saveModifiedFile path:"+origFilePath);
 	var syncData = fs.readFileSync(origFilePath, 'utf8');
 	var doc = new domparser().parseFromString(syncData, 'text/xml');
 	
